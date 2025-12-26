@@ -1,54 +1,48 @@
 # FlashFuzzy
 
 <p align="center">
-  <strong>High-performance fuzzy search engine for JavaScript/TypeScript</strong><br>
-  <em>Powered by Rust and WebAssembly - Fast, lightweight, zero dependencies</em>
+  <strong>High-performance fuzzy search engine for JavaScript/TypeScript</strong>
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/flashfuzzy"><img src="https://img.shields.io/npm/v/flashfuzzy.svg" alt="npm version"></a>
   <a href="https://github.com/RafaCalRob/FlashFuzzy/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="license"></a>
   <img src="https://img.shields.io/badge/size-~3KB-brightgreen" alt="bundle size">
-  <img src="https://img.shields.io/badge/WASM-yes-orange" alt="WebAssembly">
 </p>
 
 <p align="center">
-  <a href="https://bdovenbird.com/flash-fuzzy/">📖 Documentation</a> •
-  <a href="https://bdovenbird.com/flash-fuzzy/playground">🎮 Live Demo</a> •
-  <a href="https://github.com/RafaCalRob/FlashFuzzy">💻 GitHub</a>
+  <a href="https://bdovenbird.com/flash-fuzzy/">Documentation</a> •
+  <a href="https://bdovenbird.com/flash-fuzzy/playground">Live Demo</a> •
+  <a href="https://github.com/RafaCalRob/FlashFuzzy">GitHub</a>
 </p>
 
 ---
 
-## Why FlashFuzzy?
+## Overview
 
-FlashFuzzy is a **blazing-fast fuzzy search library** for JavaScript/TypeScript applications. Built with Rust and compiled to WebAssembly, it delivers exceptional performance for autocomplete, command palettes, product search, and more.
+FlashFuzzy is a high-performance fuzzy search library for JavaScript/TypeScript applications. Built with Rust and compiled to WebAssembly, it delivers exceptional performance for autocomplete, command palettes, product search, and more.
 
-### Features
+### Key Features
 
-- ⚡ **Sub-millisecond search** on 100K+ records
-- 🎯 **Typo-tolerant** matching with configurable error distance
-- 🪶 **Tiny bundle** - ~3KB WASM binary (1.5KB gzipped)
-- 🚀 **Zero dependencies** - Pure Rust core
-- 🔧 **Framework agnostic** - Works with React, Vue, Angular, Svelte, vanilla JS
-- 📦 **Tree-shakeable** - ESM and CommonJS builds
-- 💪 **TypeScript** support with full type definitions
-- 🌐 **Universal** - Node.js, browsers, Deno, Bun
+- Sub-millisecond search on 100K+ records
+- Typo-tolerant matching with configurable error distance
+- Tiny bundle size: ~3KB WASM binary (1.5KB gzipped)
+- Zero dependencies
+- Framework agnostic: React, Vue, Angular, Svelte, vanilla JS
+- Tree-shakeable ESM and CommonJS builds
+- Full TypeScript support with type definitions
+- Universal: Node.js, browsers, Deno, Bun
 
 ### Performance
 
-FlashFuzzy combines two powerful algorithms for maximum speed:
-
-1. **Bloom Filter Pre-filtering** - Rejects 80-95% of non-matching records in O(1)
-2. **Bitap Algorithm** - Bit-parallel fuzzy matching
+FlashFuzzy combines Bloom Filter pre-filtering with the Bitap algorithm for maximum speed. The Bloom filter rejects 80-95% of non-matching records in O(1) time before running fuzzy matching.
 
 **Result:** 10-100x faster than traditional fuzzy search libraries.
 
-| Library | Search Time (10K records) | Bundle Size |
-|---------|--------------------------|-------------|
+| Library | Search Time (100K records) | Bundle Size |
+|---------|---------------------------|-------------|
 | **FlashFuzzy** | **0.8ms** | **3KB** |
-| Fuse.js | 145ms | 12KB |
-| fuzzy.js | 89ms | 8KB |
+| Alternative A | 145ms | 12KB |
 
 ---
 
@@ -70,30 +64,23 @@ bun add flashfuzzy
 
 ## Quick Start
 
-### Basic Usage
-
 ```javascript
 import { FlashFuzzy } from 'flashfuzzy';
 
-// Initialize
-const ff = await FlashFuzzy.init({
-  threshold: 0.25,     // Lower = stricter matching
-  maxResults: 50,      // Limit results
-  maxErrors: 2         // Max typos allowed
+const searchEngine = await FlashFuzzy.init({
+  threshold: 0.25,
+  maxResults: 50,
+  maxErrors: 2
 });
 
-// Add records
-ff.add([
+searchEngine.add([
   { id: 1, name: "Wireless Headphones" },
   { id: 2, name: "Mechanical Keyboard" },
   { id: 3, name: "USB Cable" },
   { id: 4, name: "Laptop Stand" }
 ]);
 
-// Search
-const results = ff.search("keyboard");
-// => [{ id: 2, score: 0.95, matches: {...} }]
-
+const results = searchEngine.search("keyboard");
 console.log(results);
 // [
 //   {
@@ -102,197 +89,347 @@ console.log(results);
 //     matches: {
 //       name: {
 //         value: "Mechanical Keyboard",
-//         ranges: [[11, 19]]  // Matched "Keyboard"
+//         ranges: [[11, 19]]
 //       }
 //     }
 //   }
 // ]
 ```
 
-### React Example
+---
 
-```jsx
-import { useState, useEffect } from 'react';
+## React Integration
+
+### Custom Hook Pattern
+
+```typescript
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FlashFuzzy } from 'flashfuzzy';
 
-function SearchComponent() {
-  const [ff, setFf] = useState(null);
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
+interface SearchItem {
+  id: number;
+  title: string;
+  description: string;
+}
+
+const useFlashFuzzy = <T extends SearchItem>(
+  items: T[],
+  config = { threshold: 0.3, maxResults: 10 }
+) => {
+  const [engine, setEngine] = useState<any>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    FlashFuzzy.init({ threshold: 0.3, maxResults: 10 })
-      .then(fuzzy => {
-        fuzzy.add([
-          { id: 1, title: "React Documentation" },
-          { id: 2, title: "TypeScript Guide" },
-          { id: 3, title: "WebAssembly Tutorial" }
-        ]);
-        setFf(fuzzy);
-      });
+    FlashFuzzy.init(config).then(instance => {
+      instance.add(items);
+      setEngine(instance);
+      setIsReady(true);
+    });
   }, []);
 
-  const handleSearch = (e) => {
-    const value = e.target.value;
-    setQuery(value);
+  const search = useCallback(
+    (query: string) => (engine && query.trim() ? engine.search(query) : []),
+    [engine]
+  );
 
-    if (ff && value.trim()) {
-      setResults(ff.search(value));
-    } else {
-      setResults([]);
-    }
-  };
+  const addItem = useCallback(
+    (item: T) => engine?.addRecord(item),
+    [engine]
+  );
+
+  const removeItem = useCallback(
+    (id: number) => engine?.removeRecord(id),
+    [engine]
+  );
+
+  return { search, addItem, removeItem, isReady };
+};
+
+// Usage
+export default function SearchableList() {
+  const [query, setQuery] = useState('');
+  const { search, isReady } = useFlashFuzzy([
+    { id: 1, title: "React Patterns", description: "Advanced patterns" },
+    { id: 2, title: "TypeScript Guide", description: "Type safety" }
+  ]);
+
+  const results = useMemo(() => search(query), [query, search]);
+
+  if (!isReady) return <div>Loading...</div>;
 
   return (
     <div>
       <input
         type="text"
         value={query}
-        onChange={handleSearch}
+        onChange={e => setQuery(e.target.value)}
         placeholder="Search..."
       />
-      <ul>
-        {results.map(result => (
-          <li key={result.id}>
-            {result.matches.title.value} (score: {result.score})
-          </li>
-        ))}
-      </ul>
+      {results.map(({ id, matches }) => (
+        <div key={id}>{matches.title.value}</div>
+      ))}
     </div>
   );
 }
 ```
 
-### Vue 3 Example
+### Higher-Order Component Pattern
 
-```vue
-<template>
-  <div>
-    <input v-model="query" @input="search" placeholder="Search..." />
-    <ul>
-      <li v-for="result in results" :key="result.id">
-        {{ result.matches.name.value }} ({{ result.score }})
-      </li>
-    </ul>
-  </div>
-</template>
-
-<script setup>
-import { ref, onMounted } from 'vue';
+```typescript
+import { Component, ComponentType } from 'react';
 import { FlashFuzzy } from 'flashfuzzy';
 
-const query = ref('');
-const results = ref([]);
-let ff = null;
+interface WithSearchProps {
+  searchEngine: any;
+  isSearchReady: boolean;
+}
 
-onMounted(async () => {
-  ff = await FlashFuzzy.init({ threshold: 0.3 });
-  ff.add([
-    { id: 1, name: 'Product A' },
-    { id: 2, name: 'Product B' }
-  ]);
-});
+const withFlashFuzzy = <P extends object>(
+  WrappedComponent: ComponentType<P & WithSearchProps>,
+  items: any[],
+  config = {}
+) => {
+  return class extends Component<P, { engine: any; ready: boolean }> {
+    state = { engine: null, ready: false };
 
-const search = () => {
-  results.value = ff ? ff.search(query.value) : [];
+    async componentDidMount() {
+      const engine = await FlashFuzzy.init(config);
+      engine.add(items);
+      this.setState({ engine, ready: true });
+    }
+
+    render() {
+      return (
+        <WrappedComponent
+          {...(this.props as P)}
+          searchEngine={this.state.engine}
+          isSearchReady={this.state.ready}
+        />
+      );
+    }
+  };
 };
-</script>
 ```
 
-### Next.js Example
+---
 
-```tsx
-'use client';
+## Vue 3 Composition API
 
-import { useEffect, useState } from 'react';
+```typescript
+import { ref, computed, onMounted } from 'vue';
 import { FlashFuzzy } from 'flashfuzzy';
 
-export default function SearchPage() {
-  const [ff, setFf] = useState<any>(null);
+export const useSearch = (items: any[], options = {}) => {
+  const engine = ref(null);
+  const query = ref('');
+  const isReady = ref(false);
 
-  useEffect(() => {
-    FlashFuzzy.init({ threshold: 0.25 }).then(setFf);
-  }, []);
+  onMounted(async () => {
+    engine.value = await FlashFuzzy.init(options);
+    engine.value.add(items);
+    isReady.value = true;
+  });
 
-  // ... rest of component
-}
+  const results = computed(() =>
+    engine.value && query.value.trim()
+      ? engine.value.search(query.value)
+      : []
+  );
+
+  const addRecord = (item: any) => engine.value?.addRecord(item);
+  const removeRecord = (id: number) => engine.value?.removeRecord(id);
+  const reset = () => engine.value?.reset();
+
+  return {
+    query,
+    results,
+    isReady,
+    addRecord,
+    removeRecord,
+    reset
+  };
+};
+
+// Component usage
+export default {
+  setup() {
+    const items = [
+      { id: 1, name: 'Product Alpha' },
+      { id: 2, name: 'Product Beta' }
+    ];
+
+    const { query, results, isReady } = useSearch(items, {
+      threshold: 0.25,
+      maxResults: 20
+    });
+
+    return { query, results, isReady };
+  }
+};
 ```
 
 ---
 
 ## Advanced Usage
 
-### Schema Support (Multi-field Search)
+### Multi-field Search with Weighted Scoring
 
-Search across multiple fields with different weights:
+```typescript
+import { FlashFuzzy } from 'flashfuzzy';
 
-```javascript
-const ff = await FlashFuzzy.init({
-  threshold: 0.25,
-  schema: {
-    fields: [
-      { name: 'title', weight: 2.0 },    // Title is more important
-      { name: 'description', weight: 1.0 },
-      { name: 'tags', weight: 1.5 }
-    ]
-  }
-});
+interface Product {
+  id: number;
+  title: string;
+  brand: string;
+  category: string;
+  description: string;
+}
 
-ff.add([
+const createProductSearch = async (products: Product[]) => {
+  const engine = await FlashFuzzy.init({
+    threshold: 0.25,
+    schema: {
+      fields: [
+        { name: 'title', weight: 2.0 },
+        { name: 'brand', weight: 1.5 },
+        { name: 'category', weight: 1.0 },
+        { name: 'description', weight: 0.5 }
+      ]
+    }
+  });
+
+  engine.add(products);
+
+  return {
+    search: (query: string) => engine.search(query),
+    addProduct: (product: Product) => engine.addRecord(product),
+    removeProduct: (id: number) => engine.removeRecord(id),
+    getStats: () => engine.getStats()
+  };
+};
+
+// Usage
+const productSearch = await createProductSearch([
   {
     id: 1,
     title: "MacBook Pro",
-    description: "Powerful laptop for developers",
-    tags: "apple computer notebook"
+    brand: "Apple",
+    category: "Laptops",
+    description: "High-performance laptop for professionals"
   }
 ]);
 
-const results = ff.search("laptop");
-// Matches in 'description' field
+const results = productSearch.search("laptop");
 ```
 
-### Autocomplete
+### Command Palette Implementation
 
-```javascript
+```typescript
 import { FlashFuzzy } from 'flashfuzzy';
 
-const autocomplete = await FlashFuzzy.init({
-  threshold: 0.2,
-  maxResults: 5,
-  maxErrors: 1  // Strict for autocomplete
-});
+interface Command {
+  id: number;
+  command: string;
+  shortcut: string;
+  category: string;
+  action: () => void;
+}
 
-autocomplete.add([
-  { id: 1, command: "Open File" },
-  { id: 2, command: "Save File" },
-  { id: 3, command: "Close Window" }
+class CommandPalette {
+  private engine: any;
+  private commands: Map<number, Command>;
+
+  constructor() {
+    this.commands = new Map();
+  }
+
+  async initialize(commands: Command[]) {
+    this.engine = await FlashFuzzy.init({
+      threshold: 0.2,
+      maxResults: 10,
+      maxErrors: 2,
+      schema: {
+        fields: [
+          { name: 'command', weight: 2.0 },
+          { name: 'category', weight: 1.0 }
+        ]
+      }
+    });
+
+    commands.forEach(cmd => {
+      this.commands.set(cmd.id, cmd);
+      this.engine.addRecord({
+        id: cmd.id,
+        command: cmd.command,
+        category: cmd.category
+      });
+    });
+  }
+
+  search(query: string) {
+    return this.engine
+      .search(query)
+      .map(result => ({
+        ...this.commands.get(result.id),
+        score: result.score
+      }));
+  }
+
+  execute(commandId: number) {
+    const command = this.commands.get(commandId);
+    command?.action();
+  }
+}
+
+// Usage
+const palette = new CommandPalette();
+await palette.initialize([
+  {
+    id: 1,
+    command: "Open File",
+    shortcut: "Ctrl+O",
+    category: "File",
+    action: () => console.log("Opening file...")
+  },
+  {
+    id: 2,
+    command: "Save File",
+    shortcut: "Ctrl+S",
+    category: "File",
+    action: () => console.log("Saving file...")
+  }
 ]);
 
-// User types: "opn"
-const suggestions = autocomplete.search("opn");
-// => [{ id: 1, command: "Open File", score: 0.85 }]
+const matches = palette.search("open");
 ```
 
-### Real-time Updates
+### Reactive Search with RxJS
 
-```javascript
-// Add records dynamically
-ff.addRecord({ id: 100, name: "New Product" });
+```typescript
+import { fromEvent, debounceTime, map, switchMap, distinctUntilChanged } from 'rxjs';
+import { FlashFuzzy } from 'flashfuzzy';
 
-// Remove records
-ff.removeRecord(100);
+const createReactiveSearch = async (items: any[], inputElement: HTMLInputElement) => {
+  const engine = await FlashFuzzy.init({ threshold: 0.3 });
+  engine.add(items);
 
-// Clear all
-ff.reset();
+  return fromEvent(inputElement, 'input').pipe(
+    map(event => (event.target as HTMLInputElement).value),
+    debounceTime(300),
+    distinctUntilChanged(),
+    map(query => engine.search(query))
+  );
+};
 
-// Get stats
-const stats = ff.getStats();
-console.log(stats);
-// {
-//   recordCount: 1000,
-//   stringPoolUsed: 45123,
-//   availableMemory: 4149877
-// }
+// Usage
+const searchResults$ = await createReactiveSearch(
+  [{ id: 1, name: "Item 1" }],
+  document.querySelector('input')
+);
+
+searchResults$.subscribe(results => {
+  console.log('Search results:', results);
+});
 ```
 
 ---
@@ -306,7 +443,7 @@ Initialize the fuzzy search engine.
 **Options:**
 
 ```typescript
-{
+interface FlashFuzzyOptions {
   threshold?: number;        // 0-1, default: 0.25 (lower = stricter)
   maxResults?: number;       // default: 100
   maxErrors?: number;        // default: adaptive based on pattern length
@@ -382,7 +519,7 @@ interface Stats {
 
 ### E-commerce Product Search
 
-```javascript
+```typescript
 const productSearch = await FlashFuzzy.init({
   threshold: 0.3,
   schema: {
@@ -398,20 +535,10 @@ const productSearch = await FlashFuzzy.init({
 productSearch.add(products);
 ```
 
-### Command Palette (VSCode-style)
-
-```javascript
-const commands = await FlashFuzzy.init({
-  threshold: 0.2,
-  maxResults: 10,
-  maxErrors: 2
-});
-```
-
 ### User Directory Search
 
-```javascript
-const users = await FlashFuzzy.init({
+```typescript
+const userSearch = await FlashFuzzy.init({
   schema: {
     fields: [
       { name: 'name', weight: 2.0 },
@@ -419,6 +546,16 @@ const users = await FlashFuzzy.init({
       { name: 'department', weight: 0.5 }
     ]
   }
+});
+```
+
+### Autocomplete System
+
+```typescript
+const autocomplete = await FlashFuzzy.init({
+  threshold: 0.2,
+  maxResults: 5,
+  maxErrors: 1
 });
 ```
 
@@ -430,7 +567,7 @@ FlashFuzzy uses a two-phase search algorithm:
 
 ### Phase 1: Bloom Filter Pre-filtering
 
-Before running expensive fuzzy matching, each record is checked using a 64-bit Bloom filter. This rejects 80-95% of records in O(1) time.
+Each record is checked using a 64-bit Bloom filter before running expensive fuzzy matching. This rejects 80-95% of non-matching records in O(1) time.
 
 ```
 Record: "Wireless Keyboard"
@@ -440,51 +577,45 @@ Query:  "keyboard"
 Bloom:  00001010 01000001... (64 bits)
 
 Check:  (record_bloom & query_bloom) == query_bloom
-        ✓ Might match → Run Bitap
-        ✗ No match → Skip (most records)
+        Pass → Run Bitap
+        Fail → Skip
 ```
 
 ### Phase 2: Bitap Algorithm
 
 For records that pass the Bloom filter, the Bitap (Shift-Or) algorithm performs bit-parallel fuzzy matching with support for typos, insertions, and deletions.
 
-This combination delivers exceptional performance while maintaining high accuracy.
-
 ---
 
 ## TypeScript Support
 
-FlashFuzzy is written in TypeScript with full type definitions:
+Full TypeScript definitions included:
 
 ```typescript
-import { FlashFuzzy, type FlashFuzzyOptions, type SearchResult } from '@bdovenbird/flashfuzzy';
+import { FlashFuzzy, type FlashFuzzyOptions, type SearchResult } from 'flashfuzzy';
 
 const options: FlashFuzzyOptions = {
   threshold: 0.25,
   maxResults: 50
 };
 
-const ff = await FlashFuzzy.init(options);
-
-const results: SearchResult[] = ff.search("query");
+const engine = await FlashFuzzy.init(options);
+const results: SearchResult[] = engine.search("query");
 ```
 
 ---
 
-## Browser Support
+## Platform Support
 
-FlashFuzzy works in all modern browsers with WebAssembly support:
+### Browser Compatibility
 
-- ✅ Chrome/Edge 57+
-- ✅ Firefox 52+
-- ✅ Safari 11+
-- ✅ Opera 44+
+Works in all modern browsers with WebAssembly support:
+- Chrome/Edge 57+
+- Firefox 52+
+- Safari 11+
+- Opera 44+
 
-For older browsers, you'll need a WASM polyfill.
-
----
-
-## Node.js Support
+### Node.js
 
 Requires Node.js 16 or higher.
 
@@ -496,11 +627,7 @@ const { FlashFuzzy } = require('flashfuzzy');
 import { FlashFuzzy } from 'flashfuzzy';
 ```
 
----
-
-## Deno & Bun
-
-FlashFuzzy works with Deno and Bun out of the box:
+### Deno & Bun
 
 ```typescript
 // Deno
@@ -514,7 +641,7 @@ import { FlashFuzzy } from "flashfuzzy";
 
 ## Benchmarks
 
-Run the benchmarks yourself:
+Run benchmarks yourself:
 
 ```bash
 git clone https://github.com/RafaCalRob/FlashFuzzy.git
@@ -527,11 +654,11 @@ npm test
 
 ## Links
 
-- 📖 **Documentation:** https://bdovenbird.com/flash-fuzzy/
-- 🎮 **Live Demo:** https://bdovenbird.com/flash-fuzzy/playground
-- 💻 **GitHub:** https://github.com/RafaCalRob/FlashFuzzy
-- 📦 **npm:** https://www.npmjs.com/package/flashfuzzy
-- 🐛 **Issues:** https://github.com/RafaCalRob/FlashFuzzy/issues
+- **Documentation:** https://bdovenbird.com/flash-fuzzy/
+- **Live Demo:** https://bdovenbird.com/flash-fuzzy/playground
+- **GitHub:** https://github.com/RafaCalRob/FlashFuzzy
+- **npm:** https://www.npmjs.com/package/flashfuzzy
+- **Issues:** https://github.com/RafaCalRob/FlashFuzzy/issues
 
 ---
 
@@ -549,12 +676,4 @@ MIT © 2025 [Rafael Calderon Robles](https://www.linkedin.com/in/rafael-c-553545
 
 ## Credits
 
-Built with:
-- **Rust** - Core implementation
-- **WebAssembly** - Fast, portable execution
-- **Bitap Algorithm** - Efficient fuzzy matching
-- **Bloom Filters** - Fast pre-filtering
-
----
-
-**Made with ❤️ for the JavaScript community**
+Built with Rust, WebAssembly, Bitap Algorithm, and Bloom Filters.
