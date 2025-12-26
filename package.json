@@ -30,7 +30,10 @@
     "build": "npm run build:wasm && npm run build:js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run prepare:npm && npm run build",
+    "postpublish": "npm run restore:readme",
+    "prepare:npm": "(copy README_NPM.md README.md || cp README_NPM.md README.md)",
+    "restore:readme": "git checkout README.md"
   },
   "keywords": [
     "fuzzy",
