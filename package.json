@@ -1,5 +1,5 @@
 {
-  "name": "flash-fuzzy",
+  "name": "flashfuzzy",
   "version": "0.1.0",
   "description": "High-performance fuzzy search engine powered by Rust and WebAssembly",
   "main": "dist/index.js",
