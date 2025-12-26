@@ -457,7 +457,7 @@ This combination delivers exceptional performance while maintaining high accurac
 FlashFuzzy is written in TypeScript with full type definitions:
 
 ```typescript
-import { FlashFuzzy, type FlashFuzzyOptions, type SearchResult } from 'flashfuzzy';
+import { FlashFuzzy, type FlashFuzzyOptions, type SearchResult } from '@bdovenbird/flashfuzzy';
 
 const options: FlashFuzzyOptions = {
   threshold: 0.25,
