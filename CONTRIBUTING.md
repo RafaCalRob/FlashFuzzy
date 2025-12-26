@@ -1,6 +1,6 @@
-# Contributing to Flash-Fuzzy
+# Contributing to FlashFuzzy
 
-Thank you for your interest in contributing to Flash-Fuzzy!
+Thank you for your interest in contributing to FlashFuzzy!
 
 ## Development Setup
 
