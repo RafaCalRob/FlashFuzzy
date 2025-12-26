@@ -1,0 +1,40 @@
+[build-system]
+requires = ["maturin>=1.4,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "flash-fuzzy"
+version = "0.1.0"
+description = "High-performance fuzzy search engine powered by Rust"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "RafaCalRob" }]
+keywords = ["fuzzy", "search", "fast", "rust", "bitap"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Text Processing :: Indexing",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/RafaCalRob/FlashFuzzy"
+Documentation = "https://github.com/RafaCalRob/FlashFuzzy#readme"
+Repository = "https://github.com/RafaCalRob/FlashFuzzy"
+Issues = "https://github.com/RafaCalRob/FlashFuzzy/issues"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "flash_fuzzy"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Rust build artifacts
+rust/target/
+bindings/*/target/
+bindings/**/Cargo.lock
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*.code-workspace
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# Temp files
+*.tmp
+*.temp
+
+# Misc
+*.tgz
+
+# Internal todo (not for git)
+TODO.md
+TODO-*.md
+
+# Docusaurus
+docs-site/.docusaurus/
+docs-site/build/
+docs-site/public/

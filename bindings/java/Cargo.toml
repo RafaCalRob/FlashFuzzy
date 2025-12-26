@@ -1,0 +1,20 @@
+[package]
+name = "flash-fuzzy-jni"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Flash-Fuzzy JNI bindings for Java/Kotlin/Android"
+
+[lib]
+crate-type = ["cdylib"]
+name = "flash_fuzzy_jni"
+
+[dependencies]
+jni = "0.21"
+flash-fuzzy-core = { path = "../../rust/core" }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

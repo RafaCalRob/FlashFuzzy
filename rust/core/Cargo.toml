@@ -1,0 +1,22 @@
+[package]
+name = "flash-fuzzy-core"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "High-performance fuzzy search using Bitap algorithm with bloom filter pre-filtering. Zero dependencies, no_std compatible."
+repository = "https://github.com/RafaCalRob/FlashFuzzy"
+homepage = "https://github.com/RafaCalRob/FlashFuzzy"
+documentation = "https://docs.rs/flash-fuzzy-core"
+readme = "README.md"
+authors = ["RafaCalRob"]
+keywords = ["fuzzy", "search", "bitap", "no_std", "wasm"]
+categories = ["algorithms", "no-std", "wasm", "text-processing"]
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+default = []
+std = []
+
+[dependencies]

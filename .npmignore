@@ -1,0 +1,18 @@
+# Source code (only publish dist/)
+rust/
+js/
+tests/
+
+# Build & config
+tsconfig.json
+vitest.config.ts
+benchmark.html
+
+# Dev
+.gitignore
+.editorconfig
+.vscode/
+.idea/
+.claude/
+*.log
+coverage/

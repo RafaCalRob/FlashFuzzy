@@ -1,0 +1,66 @@
+{
+  "name": "flash-fuzzy",
+  "version": "0.1.0",
+  "description": "High-performance fuzzy search engine powered by Rust and WebAssembly",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "logo.png"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build:wasm": "cd rust && cargo build --release --target wasm32-unknown-unknown -p flash-fuzzy-wasm && cp target/wasm32-unknown-unknown/release/flash_fuzzy_wasm.wasm ../dist/flash-fuzzy.wasm",
+    "build:js": "tsup js/src/index.ts --format cjs,esm --dts --out-dir dist",
+    "build": "npm run build:wasm && npm run build:js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "fuzzy",
+    "search",
+    "fuzzy-search",
+    "wasm",
+    "webassembly",
+    "rust",
+    "fast",
+    "performance",
+    "bitap",
+    "levenshtein"
+  ],
+  "author": "RafaCalRob",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RafaCalRob/FlashFuzzy.git"
+  },
+  "homepage": "https://github.com/RafaCalRob/FlashFuzzy#readme",
+  "bugs": {
+    "url": "https://github.com/RafaCalRob/FlashFuzzy/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

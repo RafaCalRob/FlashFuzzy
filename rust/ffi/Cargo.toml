@@ -1,0 +1,17 @@
+[package]
+name = "flash-fuzzy-ffi"
+description = "C FFI bindings for Flash-Fuzzy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+flash-fuzzy-core = { path = "../core" }
+
+[build-dependencies]
+# cbindgen = "0.26" # Uncomment to generate C headers
